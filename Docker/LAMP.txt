@@ -1,0 +1,60 @@
+https://hub.docker.com/r/mattrayner/lamp
+https://github.com/mattrayner/docker-lamp
+
+docker pull mattrayner/lamp:0.8.0-1804-php8
+docker run --name lamptest -h lamptest -p 300:80 -p 3308:3306 -v D:\Usuario\Documents\Chat\Docker\chat:/app/ -v D:\Usuario\Documents\Chat\Docker\mysql:/mysql/ -d mattrayner/lamp:0.8.0-1804-php8
+
+docker ps
+docker logs CONTAINER_ID
+
+mysql -u root
+
+CREATE DATABASE IF NOT EXISTS chat_local;
+USE chat_local;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+--Crear usuario
+CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+
+CREATE USER 'phpmyadmin'@'localhost' IDENTIFIED BY 'Qwerty123456';
+
+--Eliminar usuarios
+DELETE FROM mysql.user WHERE user = 'username';
+
+DELETE FROM mysql.user WHERE user = 'phpmyadmin';
+
+--Asignar privilegios
+grant all privileges on *.* to 'username'@'localhost';
+
+grant all privileges on *.* to 'phpmyadmin'@'localhost';
+
+--Cambiar contraseña
+set password for 'username'@'localhost' = 'password';
+
+set password for 'admin'@'%' = 'Qwerty123456';
+
+--Importar base de datos
+mysql -u 'username' -p  chat_local < chat_local.sql;
+
+mysql -u root chat_local < chat_local.sql;
+
+--Exportar Base de Datos
+mysqldump --opt -u 'username' -p chat_local > chat_local.sql;
+
+mysqldump --opt -u root -p chat_local > chat_local.sql;
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+docker build -t chat .
+docker run --name chatest -h chatest -p 400:80 -p 3309:3306 -d chat
+
+CREATE DATABASE IF NOT EXISTS chat_local;
+
+FROM mattrayner/lamp:latest
+ENV MYSQL_DATABASE chat_local
+ADD chat /app/chat
+ADD mysql /mysql/
+RUN mysql -u root chat_local < /mysql/chat_local.sql;
